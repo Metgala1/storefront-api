@@ -1,67 +1,42 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 
 app = FastAPI(
     title="StoreFront API",
-    description="Backend API powering the storFront application",
+    description="The backend API for StoreFront.",
     version="1.0.0"
 )
 
-@app.get("/")
-def root():
+products = [
+    {"id": 1, "name": "MacBook Air", "category": "computers", "price": 1200},
+    {"id": 2, "name": "iPhone 17", "category": "phones", "price": 900},
+    {"id": 3, "name": "MacBook Pro", "category": "computers", "price": 2000},
+    {"id": 4, "name": "Samsung Galaxy", "category": "phones", "price": 850},
+    {"id": 5, "name": "iPad Air", "category": "tablets", "price": 600},
+]
+
+
+@app.get("/products")
+def get_products(
+    category: str | None = None,
+    search: str | None = None,
+    limit: int = Query(default=2, ge=1, le=10),
+):
+    result = products
+    if category:
+        result = [p for p in result if p["category"].lower() == category.lower()]
+    
+    if search:
+        result = [p for p in result if search.lower() in p["name"].lower()]
+    
+    result = result[:limit]
+    
+    return {"count": limit , "products": result}
+
+
+@app.get("/products/{product_id}")
+def get_by_id(product_id: int):
+    result = [p for p in products if p["id"] == product_id]
+    
     return {
-        "message": "Welcome to StoreFront API"
-    }
-
-@app.post(
-    "/products",
-    tags=["Products"]
-    )
-def create_product():
-    return {
-        "message": "Product created successfully"
-    }
-
-@app.get("/products",
-         tags=["Products"]
-         )
-def get_products():
-    return {
-        "products": [
-            {
-                "id": 1,
-                "name": "Macbook",
-                "price": 1200
-            },
-            {
-                "id": 2,
-                "name": "iphone",
-                "price": 900
-            }
-        ]
-    }
-
-@app.get("/categories",
-         tags=["categories"]
-         )
-def get_categories():
-    return {
-        "categories": [
-            "Electronics",
-            "Accessories",
-            "Computers"
-        ]
-    }
-
-@app.get("/brands")
-def get_brands():
-    return ["Apple", "Samsung", "Dell"]
-
-@app.get("/product-count")
-def product_count():
-    return 25
-
-@app.delete("/products")
-def delete_products():
-    return {
-        "message": "Products deleted successful"
+        "product": result
     }
