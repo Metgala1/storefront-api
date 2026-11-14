@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query ,HTTPException
+from fastapi import FastAPI, Query ,HTTPException, Response, status
 
 from app.schemas.product import ProductCreate ,ProductPatch ,ProductUpdate
 
@@ -119,5 +119,20 @@ async def replace_product(product_id: int, product: ProductUpdate):
     
     raise HTTPException(
         status_code=404,
+        detail="Product not found"
+    )
+
+@app.delete("/products/{product_id}",  status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(product_id: int):
+    for index , product in enumerate(products):
+        if product["id"] == product_id:
+            products.pop(index)
+            
+            return Response(
+                status_code=status.HTTP_204_NO_CONTENT
+            )
+    
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
         detail="Product not found"
     )
