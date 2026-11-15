@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, Header, Response, Request, UploadFile, Cookie
+from fastapi import FastAPI, File, Form, Header, Response, Request, UploadFile, Cookie
 from fastapi.responses import JSONResponse
 from typing import Annotated
 
@@ -89,11 +89,10 @@ async def login_form(
         "message": "Form received"
     }
 
-@app.post("/profile-picture")
-async def upload_profile_picture(
-    file: UploadFile
-):
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
     return {
         "filename": file.filename,
         "content_type": file.content_type
-    } 
+    }
