@@ -1,6 +1,15 @@
-from fastapi import APIRouter, HTTPException, Query, status, Depends
+from fastapi import APIRouter, status
 
-from app.schemas.product import Product, ProductCreate, ProductPatch, ProductUpdate, ProductResponse, ProductListResponse, ProductNotFoundException
+from app.dependencies.auth import AdminUser
+from app.dependencies.pagination import Pagination
+from app.schemas.product import (
+    ProductCreate,
+    ProductListResponse,
+    ProductNotFoundException,
+    ProductPatch,
+    ProductResponse,
+    ProductUpdate,
+)
 
 router = APIRouter(tags=["Products"])
 
@@ -54,67 +63,39 @@ def find_index(product_id: int) -> int:
             return index
     raise ProductNotFoundException()
 
-def get_pagination(
-    skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=5, ge=1, le=10),
-) -> dict:
-    return {"skip": skip, "limit": limit}
 
-def get_current_user():
-    return {
-        "id": 1,
-        "name": "Roger",
-        "role": "Admin"
-    }
-
-def get_current_admin(user: dict = Depends(get_current_user)) -> dict:
-    if user.get("role") != "Admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only an admin can perform this task",
-        )
-    return user
-    
-
-
-@router.get("", response_model=ProductListResponse, status_code=status.HTTP_200_OK)
+@router.get("", response_model=ProductListResponse)
 def get_products(
+    pagination: Pagination,
     category: str | None = None,
     search: str | None = None,
-    pagination: dict = Depends(get_pagination),
 ):
     result = products
 
     if category:
         result = [p for p in result if p["category"].lower() == category.lower()]
-
     if search:
         result = [p for p in result if search.lower() in p["name"].lower()]
 
-    total = len(result)
     skip, limit = pagination["skip"], pagination["limit"]
     page = result[skip : skip + limit]
 
     return {
         "count": len(page),
-        "total": total,
+        "total": len(result),
         "skip": skip,
         "limit": limit,
         "products": page,
     }
 
-@router.get("/{product_id}", response_model=ProductResponse, status_code=status.HTTP_200_OK)
+
+@router.get("/{product_id}", response_model=ProductResponse)
 def get_by_id(product_id: int):
     return products[find_index(product_id)]
 
 
-@router.post(
-    "",
-    response_model=ProductResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(get_current_admin)],
-)
-def create_product(data: ProductCreate):
+@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+def create_product(data: ProductCreate, admin: AdminUser):
     new_id = max((p["id"] for p in products), default=0) + 1
     new_product = {"id": new_id, **data.model_dump()}
     products.append(new_product)
@@ -122,19 +103,19 @@ def create_product(data: ProductCreate):
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
-def replace_product(product_id: int, data: ProductUpdate):
+def replace_product(product_id: int, data: ProductUpdate, admin: AdminUser):
     index = find_index(product_id)
     products[index] = {"id": product_id, **data.model_dump()}
     return products[index]
 
 
 @router.patch("/{product_id}", response_model=ProductResponse)
-def edit_product(product_id: int, data: ProductPatch):
+def edit_product(product_id: int, data: ProductPatch, admin: AdminUser):
     index = find_index(product_id)
     products[index].update(data.model_dump(exclude_unset=True))
     return products[index]
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: int):
+def delete_product(product_id: int, admin: AdminUser):
     products.pop(find_index(product_id))
