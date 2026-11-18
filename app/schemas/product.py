@@ -86,3 +86,6 @@ class ProductWithCategoryResponse(BaseModel):
 
 class ProductNotFoundException(Exception):
     pass
+
+class ProductNotFoundError(Exception):
+    pass

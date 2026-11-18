@@ -1,17 +1,8 @@
-import os
+from sqlalchemy import create_engine
 
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
-
-load_dotenv()
-
-DATABASE_URL = os.environ["DATABASE_URL"]
+from app.core.config import settings
 
 engine = create_engine(
-    DATABASE_URL,
-    echo=True,
-    pool_pre_ping=True,
-    max_overflow=10,
-    pool_size=5
+    settings.DATABASE_URL,
+    pool_pre_ping=True
 )
-

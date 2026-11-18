@@ -1,18 +1,21 @@
-from app.core.security import hash_password, verify_password
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-password = "secret123"
+from app.database.base import Base
 
-hashed_password = hash_password(password)
 
-print("Opriginla:", password)
-print("Hashed:", hashed_password)
+class Example(Base):
+    __tablename__ = "example"
 
-print(
-    "Correct password:",
-    verify_password(password, hashed_password)
-)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True
+    )
 
-print(
-    "Wrong password:",
-    verify_password("wrong-password", hashed_password)
-)
+    name: Mapped[str] = mapped_column(
+        String(100)
+    )
+
+
+print("Registered tables:")
+print(list(Base.metadata.tables.keys()))

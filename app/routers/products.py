@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.models.product import Product
+# from app.services.product_service import create_product
 
 router = APIRouter(tags=["Products"])
 
@@ -72,3 +73,13 @@ def get_product_by_id(db: DbSession, product_id: int):
         )
 
     return product
+
+# @router.post("/")
+# def create_product_endpoint(product: dict):
+#     try:
+#         return create_product(product)
+#     except ValueError as error:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=str(error)
+#         )
