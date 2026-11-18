@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.schemas.product import (
     ProductCreate,
+    ProductPage,
     ProductResponse,
     ProductUpdate,
 )
@@ -19,9 +20,39 @@ router = APIRouter(
 DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/", response_model=list[ProductResponse])
-def list_products(db: DatabaseSession):
-    return product_service.get_products(db)
+@router.get("/", response_model=ProductPage)
+def list_products(
+    db: DatabaseSession,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100),
+    search: str | None = Query(default=None, min_length=1, max_length=100),
+    category_id: int | None = Query(default=None, gt=0),
+    sort_by: str = Query(
+        default="id",
+        pattern="^(id|name|price|rating|createdAt)$",
+    ),
+    sort_order: str = Query(
+        default="desc",
+        pattern="^(asc|desc)$",
+    ),
+):
+    products, total = product_service.get_products(
+        db,
+        skip=skip,
+        limit=limit,
+        search=search,
+        category_id=category_id,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+
+    return {
+        "items": products,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_more": skip + len(products) < total,
+    }
 
 
 @router.get("/{product_id}", response_model=ProductResponse)

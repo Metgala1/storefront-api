@@ -37,3 +37,10 @@ class ProductResponse(ProductBase):
     updatedAt: datetime
 
     model_config = ConfigDict(from_attributes=True)
+    
+class ProductPage(BaseModel):
+    items: list[ProductResponse]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool

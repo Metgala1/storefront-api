@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.routers.categories import router as categories_router
 from app.routers.products import router as products_router
 
 app = FastAPI(
@@ -11,3 +12,4 @@ app = FastAPI(
 )
 
 app.include_router(products_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1")
