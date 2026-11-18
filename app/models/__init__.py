@@ -1,5 +1,5 @@
 from app.models.category import Category
-from app.models.enums import UserRole
+from app.models.enums import UserRole, VideoStatus
 from app.models.message import Message
 from app.models.product import Product
 from app.models.recording import Recording
@@ -21,5 +21,6 @@ __all__ = [
     "User",
     "UserRole",
     "Video",
+    "VideoStatus",
     "WebhookEvent",
 ]

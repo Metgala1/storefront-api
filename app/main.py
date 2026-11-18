@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.routers.products import router as products_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -9,16 +10,4 @@ app = FastAPI(
     description="StoreFront API backend"
 )
 
-@app.get("/")
-def root():
-    return {
-        "message": "Welcome to StoreFront API",
-        "status": "running"
-    }
-
-
-@app.get("/health")
-def health_check():
-    return {
-        "status": "healthy"
-    }
+app.include_router(products_router, prefix="/api/v1")
