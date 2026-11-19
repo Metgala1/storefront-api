@@ -2,7 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
-
+from app.core.permissions import require_admin
+from app.models.user import User
+from app.core.exceptions import NotFoundException
 from app.database.session import get_db
 from app.schemas.product import (
     ProductCreate,
@@ -60,10 +62,7 @@ def retrieve_product(product_id: int, db: DatabaseSession):
     product = product_service.get_product(db, product_id)
 
     if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+        raise NotFoundException("Product")
 
     return product
 
@@ -73,7 +72,11 @@ def retrieve_product(product_id: int, db: DatabaseSession):
     response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_product(data: ProductCreate, db: DatabaseSession):
+def create_product(
+    data: ProductCreate,
+    db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
+    ):
     return product_service.create_product(db, data)
 
 
@@ -82,6 +85,7 @@ def update_product(
     product_id: int,
     data: ProductUpdate,
     db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
 ):
     product = product_service.get_product(db, product_id)
 
@@ -98,7 +102,11 @@ def update_product(
     "/{product_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_product(product_id: int, db: DatabaseSession):
+def delete_product(
+    product_id: int,
+    db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
+    ):
     product = product_service.get_product(db, product_id)
 
     if product is None:

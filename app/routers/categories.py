@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-
+from app.core.exceptions import NotFoundException
 from app.database.session import get_db
 from app.schemas.category import (
     CategoryCreate,
@@ -30,10 +30,7 @@ def retrieve_category(category_id: int, db: DatabaseSession):
     category = category_service.get_category(db, category_id)
 
     if category is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found",
-        )
+        raise NotFoundException("Category")
 
     return category
 

@@ -1,31 +1,25 @@
-from enum import Enum
+from collections.abc import Callable
+
+from fastapi import Depends, HTTPException, status
+
+from app.core.dependencies import get_current_user
+from app.models.enums import UserRole
+from app.models.user import User
 
 
-class UserRole(str, Enum):
-    CUSTOMER = "CUSTOMER"
-    ADMIN = "ADMIN"
+def require_role(*allowed_roles: UserRole) -> Callable:
+    def role_checker(
+        current_user: User = Depends(get_current_user)
+    ) -> User:
+        if current_user.UserRole not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't habe the persmission to perform this action"
+            )
+        
+        return current_user
+    
+    return role_checker
 
-
-class Permission(str, Enum):
-    PRODUCTS_READ = "products:read"
-    PRODUCTS_CREATE = "products:create"
-    PRODUCTS_UPDATE = "products:update"
-    PRODUCTS_DELETE = "products:delete"
-    USERS_READ = "users:read"
-    USERS_MANAGE = "users:manage"
-
-
-ROLE_PERMISSIONS = {
-    UserRole.ADMIN: {
-        Permission.PRODUCTS_READ,
-        Permission.PRODUCTS_CREATE,
-        Permission.PRODUCTS_UPDATE,
-        Permission.PRODUCTS_DELETE,
-        Permission.USERS_READ,
-        Permission.USERS_MANAGE,
-    },
-
-    UserRole.CUSTOMER: {
-        Permission.PRODUCTS_READ,
-    },
-}
+require_admin = require_role(UserRole.ADMIN)
+require_customer = require_role(UserRole.CUSTOMER)
