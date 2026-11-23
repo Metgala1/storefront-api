@@ -2,10 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
-from app.core.permissions import require_admin
-from app.models.user import User
+
 from app.core.exceptions import NotFoundException
+from app.core.permissions import require_admin
 from app.database.session import get_db
+from app.models.user import User
 from app.schemas.product import (
     ProductCreate,
     ProductPage,

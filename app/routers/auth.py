@@ -13,7 +13,6 @@ from app.services.auth_service import (
     delete_user_session,
 )
 
-
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],

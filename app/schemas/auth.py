@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-
 from app.models.enums import UserRole as UserRoleEnum
+
 
 class LoginRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)

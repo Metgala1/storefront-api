@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
+from app.routers.users import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.categories import router as categories_router
 from app.routers.products import router as products_router
@@ -17,3 +18,4 @@ register_exception_handlers(app)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(products_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/v1")

@@ -3,8 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
 from app.core.exceptions import NotFoundException
+from app.core.permissions import require_admin
 from app.database.session import get_db
+from app.models.user import User
 from app.schemas.category import (
     CategoryCreate,
     CategoryResponse,
@@ -40,7 +43,11 @@ def retrieve_category(category_id: int, db: DatabaseSession):
     response_model=CategoryResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_category(data: CategoryCreate, db: DatabaseSession):
+def create_category(
+    data: CategoryCreate,
+    db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
+    ):
     try:
         return category_service.create_category(db, data)
     except IntegrityError:
@@ -55,6 +62,7 @@ def update_category(
     category_id: int,
     data: CategoryUpdate,
     db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
 ):
     category = category_service.get_category(db, category_id)
 
@@ -71,7 +79,11 @@ def update_category(
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: int, db: DatabaseSession):
+def delete_category(
+    category_id: int, 
+    db: DatabaseSession,
+    current_user: Annotated[User, Depends(require_admin)]
+    ):
     category = category_service.get_category(db, category_id)
 
     if category is None:
